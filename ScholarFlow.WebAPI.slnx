@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="ScholarFlow.Application/ScholarFlow.Application.csproj" />
+  <Project Path="ScholarFlow.Domain/ScholarFlow.Domain.csproj" />
+  <Project Path="ScholarFlow.Infrastructure/ScholarFlow.Infrastructure.csproj" />
   <Project Path="ScholarFlow.WebAPI/ScholarFlow.WebAPI.csproj" />
 </Solution>
