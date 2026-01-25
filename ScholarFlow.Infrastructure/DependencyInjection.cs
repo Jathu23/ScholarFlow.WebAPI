@@ -1,8 +1,12 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ScholarFlow.Application.Common.Interfaces;
+using ScholarFlow.Domain.Entities;
 using ScholarFlow.Domain.Interfaces;
 using ScholarFlow.Infrastructure.Persistence;
+using ScholarFlow.Infrastructure.Services;
 
 namespace ScholarFlow.Infrastructure;
 
@@ -22,8 +26,20 @@ public static class DependencyInjection
         // Register IApplicationDbContext
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
-        // Register repositories (if implementing generic repository)
-        // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        // Register Identity
+        services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+
+        // Register AuthService
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
