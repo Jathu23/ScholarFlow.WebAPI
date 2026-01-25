@@ -22,6 +22,8 @@ public interface IApplicationDbContext
     DbSet<UserResponse> UserResponses { get; }
     DbSet<StudentProfile> StudentProfiles { get; }
     DbSet<TeacherProfile> TeacherProfiles { get; }
+    DbSet<ApplicationUser> Users { get; }
+
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

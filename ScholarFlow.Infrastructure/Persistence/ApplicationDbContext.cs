@@ -32,6 +32,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<Explanation> Explanations { get; set; }
     public DbSet<ExamSession> ExamSessions { get; set; }
     public DbSet<UserResponse> UserResponses { get; set; }
+    
+    // Expose Users from IdentityDbContext
+    public new DbSet<ApplicationUser> Users { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

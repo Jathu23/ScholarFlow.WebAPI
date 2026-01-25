@@ -50,4 +50,26 @@ public class AuthController : ControllerBase
 
         return Ok(result.Data);
     }
+
+    /// <summary>
+    /// Debug endpoint to check token claims
+    /// </summary>
+    [HttpGet("debug-token")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public IActionResult DebugToken()
+    {
+        var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+        var userId = User.FindFirst("userId")?.Value;
+        var role = User.FindFirst("role")?.Value;
+        
+        return Ok(new 
+        { 
+            allClaims = claims,
+            extractedUserId = userId,
+            extractedRole = role,
+            isAuthenticated = User.Identity?.IsAuthenticated,
+            userName = User.Identity?.Name
+        });
+    }
+
 }
