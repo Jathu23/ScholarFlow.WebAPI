@@ -57,8 +57,13 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    // Add Scalar UI for OpenAPI documentation (modern alternative to Swagger UI)
-    app.MapScalarApiReference();
+    // Add Scalar UI for OpenAPI documentation with JWT support
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("ScholarFlow API")
+            .WithTheme(ScalarTheme.Purple)
+            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    });
 }
 
 app.UseHttpsRedirection();

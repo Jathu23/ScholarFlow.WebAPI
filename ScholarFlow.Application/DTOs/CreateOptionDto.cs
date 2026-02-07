@@ -7,4 +7,5 @@ public class CreateOptionDto
 {
     public string OptionText { get; set; } = string.Empty;
     public bool IsCorrect { get; set; }
+    public int OrderIndex { get; set; }
 }

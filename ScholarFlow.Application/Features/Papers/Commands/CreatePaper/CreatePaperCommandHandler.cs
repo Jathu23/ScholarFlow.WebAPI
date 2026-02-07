@@ -55,6 +55,8 @@ public class CreatePaperCommandHandler : IRequestHandler<CreatePaperCommand, Res
             SubjectId = request.SubjectId,
             Year = request.Year,
             Type = request.Type,
+            Title = request.Title,
+            TimeLimit = request.TimeLimit,
             CreatedByTeacher = request.CreatedByTeacher
         };
 
@@ -68,8 +70,9 @@ public class CreatePaperCommandHandler : IRequestHandler<CreatePaperCommand, Res
             SubjectId = paper.SubjectId,
             SubjectName = subject.Name,
             Year = paper.Year,
-            Type = paper.Type,
-            TypeName = paper.Type.ToString(),
+            Type = paper.Type.ToString(),
+            Title = paper.Title,
+            TimeLimit = paper.TimeLimit,
             CreatedByTeacher = paper.CreatedByTeacher,
             CreatedByTeacherName = creator.UserName ?? "",
             QuestionCount = 0

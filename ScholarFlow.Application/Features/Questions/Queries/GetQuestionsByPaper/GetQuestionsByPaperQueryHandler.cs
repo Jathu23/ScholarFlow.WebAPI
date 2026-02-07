@@ -36,13 +36,16 @@ public class GetQuestionsByPaperQueryHandler : IRequestHandler<GetQuestionsByPap
             QuestionText = q.QuestionText,
             QuestionImageUrl = q.QuestionImageUrl,
             Difficulty = q.Difficulty,
+            Marks = q.Marks,
+            OrderIndex = q.OrderIndex,
             Options = q.Options.Select(o => new OptionDto
             {
                 Id = o.Id,
                 OptionText = o.OptionText,
-                IsCorrect = o.IsCorrect
-            }).ToList()
-        }).ToList();
+                IsCorrect = o.IsCorrect,
+                OrderIndex = o.OrderIndex
+            }).OrderBy(o => o.OrderIndex).ToList()
+        }).OrderBy(q => q.OrderIndex).ToList();
 
         return Result<List<QuestionDto>>.Success(dtos);
     }

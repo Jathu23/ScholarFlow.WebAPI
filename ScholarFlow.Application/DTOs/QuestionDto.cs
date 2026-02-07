@@ -12,5 +12,7 @@ public class QuestionDto
     public string QuestionText { get; set; } = string.Empty;
     public string? QuestionImageUrl { get; set; }
     public int Difficulty { get; set; }
+    public decimal Marks { get; set; }
+    public int OrderIndex { get; set; }
     public List<OptionDto> Options { get; set; } = new();
 }

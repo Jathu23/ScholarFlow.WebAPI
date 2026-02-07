@@ -16,6 +16,14 @@ public class CreatePaperCommandValidator : AbstractValidator<CreatePaperCommand>
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Invalid paper type");
 
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage("Title is required")
+            .MaximumLength(200).WithMessage("Title cannot exceed 200 characters");
+
+        RuleFor(x => x.TimeLimit)
+            .GreaterThan(0).WithMessage("Time limit must be greater than 0")
+            .LessThanOrEqualTo(300).WithMessage("Time limit cannot exceed 300 minutes");
+
         RuleFor(x => x.CreatedByTeacher)
             .NotEmpty().WithMessage("Creator is required");
     }

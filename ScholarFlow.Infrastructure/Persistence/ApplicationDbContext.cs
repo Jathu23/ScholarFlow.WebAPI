@@ -30,6 +30,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<Question> Questions { get; set; }
     public DbSet<Option> Options { get; set; }
     public DbSet<Explanation> Explanations { get; set; }
+    public DbSet<ExplanationSection> ExplanationSections { get; set; }
     public DbSet<ExamSession> ExamSessions { get; set; }
     public DbSet<UserResponse> UserResponses { get; set; }
     

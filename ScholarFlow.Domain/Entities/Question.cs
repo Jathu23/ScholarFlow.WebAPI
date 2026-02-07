@@ -42,6 +42,16 @@ public class Question : AuditableEntity
     /// Difficulty level (1-10)
     /// </summary>
     public int Difficulty { get; set; }
+
+    /// <summary>
+    /// Marks for this question
+    /// </summary>
+    public decimal Marks { get; set; } = 1;
+
+    /// <summary>
+    /// Order/sequence of question in the paper
+    /// </summary>
+    public int OrderIndex { get; set; }
     
     // Navigation properties
     private readonly List<Option> _options = new();

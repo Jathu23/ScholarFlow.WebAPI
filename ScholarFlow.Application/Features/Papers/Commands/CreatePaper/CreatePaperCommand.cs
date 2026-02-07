@@ -10,5 +10,7 @@ public class CreatePaperCommand : IRequest<Result<PaperDto>>
     public Guid SubjectId { get; set; }
     public int Year { get; set; }
     public PaperType Type { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public int TimeLimit { get; set; }
     public Guid CreatedByTeacher { get; set; } // Will be set from JWT in controller
 }

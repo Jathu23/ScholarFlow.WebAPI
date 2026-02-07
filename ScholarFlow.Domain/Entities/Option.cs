@@ -27,6 +27,11 @@ public class Option : BaseEntity
     /// Indicates if this is the correct answer
     /// </summary>
     public bool IsCorrect { get; set; }
+
+    /// <summary>
+    /// Order of the option (0=A, 1=B, 2=C, 3=D)
+    /// </summary>
+    public int OrderIndex { get; set; }
     
     // Navigation properties
     private readonly List<UserResponse> _userResponses = new();

@@ -18,6 +18,7 @@ public interface IApplicationDbContext
     DbSet<Question> Questions { get; }
     DbSet<Option> Options { get; }
     DbSet<Explanation> Explanations { get; }
+    DbSet<ExplanationSection> ExplanationSections { get; }
     DbSet<ExamSession> ExamSessions { get; }
     DbSet<UserResponse> UserResponses { get; }
     DbSet<StudentProfile> StudentProfiles { get; }

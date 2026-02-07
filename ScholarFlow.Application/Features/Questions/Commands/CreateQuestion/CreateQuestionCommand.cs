@@ -14,5 +14,7 @@ public class CreateQuestionCommand : IRequest<Result<QuestionDto>>
     public string QuestionText { get; set; } = string.Empty;
     public string? QuestionImageUrl { get; set; }
     public int Difficulty { get; set; }
+    public decimal Marks { get; set; } = 1;
+    public int OrderIndex { get; set; }
     public List<CreateOptionDto> Options { get; set; } = new();
 }

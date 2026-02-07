@@ -47,7 +47,9 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
             SubTopicId = request.SubTopicId,
             QuestionText = request.QuestionText,
             QuestionImageUrl = request.QuestionImageUrl,
-            Difficulty = request.Difficulty
+            Difficulty = request.Difficulty,
+            Marks = request.Marks,
+            OrderIndex = request.OrderIndex
         };
 
         _context.Questions.Add(question);
@@ -63,7 +65,8 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
                     Id = Guid.NewGuid(),
                     QuestionId = question.Id,
                     OptionText = optionDto.OptionText,
-                    IsCorrect = optionDto.IsCorrect
+                    IsCorrect = optionDto.IsCorrect,
+                    OrderIndex = optionDto.OrderIndex
                 };
 
                 _context.Options.Add(option);
@@ -72,7 +75,8 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
                 {
                     Id = option.Id,
                     OptionText = option.OptionText,
-                    IsCorrect = option.IsCorrect
+                    IsCorrect = option.IsCorrect,
+                    OrderIndex = option.OrderIndex
                 });
             }
         }
@@ -89,6 +93,8 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
             QuestionText = question.QuestionText,
             QuestionImageUrl = question.QuestionImageUrl,
             Difficulty = question.Difficulty,
+            Marks = question.Marks,
+            OrderIndex = question.OrderIndex,
             Options = optionDtos
         };
 

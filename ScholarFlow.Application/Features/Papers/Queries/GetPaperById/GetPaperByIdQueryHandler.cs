@@ -32,12 +32,13 @@ public class GetPaperByIdQueryHandler : IRequestHandler<GetPaperByIdQuery, Resul
         {
             Id = paper.Id,
             SubjectId = paper.SubjectId,
-            SubjectName = paper.Subject?.Name ?? "",
+            SubjectName = paper.Subject.Name,
             Year = paper.Year,
-            Type = paper.Type,
-            TypeName = paper.Type.ToString(),
+            Type = paper.Type.ToString(),
+            Title = paper.Title,
+            TimeLimit = paper.TimeLimit,
             CreatedByTeacher = paper.CreatedByTeacher,
-            CreatedByTeacherName = paper.Creator?.UserName ?? "",
+            CreatedByTeacherName = paper.Creator.UserName ?? "",
             QuestionCount = paper.Questions.Count
         };
 

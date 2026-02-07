@@ -24,6 +24,16 @@ public class Paper : AuditableEntity
     public PaperType Type { get; set; }
 
     /// <summary>
+    /// Title of the paper
+    /// </summary>
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Time limit in minutes
+    /// </summary>
+    public int TimeLimit { get; set; }
+
+    /// <summary>
     /// User ID of the teacher who created this paper
     /// </summary>
     public Guid CreatedByTeacher { get; set; }
