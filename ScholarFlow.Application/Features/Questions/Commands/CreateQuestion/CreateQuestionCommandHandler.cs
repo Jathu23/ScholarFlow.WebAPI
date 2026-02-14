@@ -30,13 +30,19 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
             return Result<QuestionDto>.Failure("Paper not found");
         }
 
-        // Check if subtopic exists
+        // Check if subtopic exists and belongs to the same subject as the paper
         var subTopic = await _context.SubTopics
+            .Include(st => st.Topic)
             .FirstOrDefaultAsync(st => st.Id == request.SubTopicId, cancellationToken);
 
         if (subTopic == null)
         {
             return Result<QuestionDto>.Failure("SubTopic not found");
+        }
+
+        if (subTopic.Topic.SubjectId != paper.SubjectId)
+        {
+             return Result<QuestionDto>.Failure("The selected SubTopic does not belong to the Subject of this Paper.");
         }
 
         // Create question

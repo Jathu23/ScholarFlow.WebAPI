@@ -5,6 +5,9 @@ using ScholarFlow.Application.Features.Papers.Commands.CreatePaper;
 using ScholarFlow.Application.Features.Papers.Commands.DeletePaper;
 using ScholarFlow.Application.Features.Papers.Queries.GetPaperById;
 using ScholarFlow.Application.Features.Papers.Queries.GetPapers;
+using ScholarFlow.Application.Features.Papers.Queries.GetPaperWithQuestions;
+using ScholarFlow.Application.Features.Questions.Commands.BulkCreateQuestions;
+using ScholarFlow.Application.DTOs;
 using ScholarFlow.Domain.Enums;
 
 namespace ScholarFlow.WebAPI.Controllers;
@@ -67,7 +70,7 @@ public class PapersController : ControllerBase
     /// Create a new paper
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Teacher,Admin")]
+    //[Authorize(Roles = "Teacher,Admin")]
     public async Task<IActionResult> Create([FromBody] CreatePaperCommand command, CancellationToken cancellationToken)
     {
         // Extract UserId from JWT token
@@ -100,5 +103,40 @@ public class PapersController : ControllerBase
         return result.IsSuccess 
             ? Ok(new { message = "Paper deleted successfully" }) 
             : NotFound(new { error = result.ErrorMessage });
+    }
+    /// <summary>
+    /// Get paper by ID with questions and options
+    /// </summary>
+    [HttpGet("{id}/questions")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetByIdWithQuestions(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetPaperWithQuestionsQuery(id);
+        var result = await _mediator.Send(query, cancellationToken);
+        
+        if (!result.IsSuccess)
+        {
+             return NotFound(new { error = result.ErrorMessage });
+        }
+
+        return Ok(result.Data); 
+    }
+    /// <summary>
+    /// Bulk create questions for a paper
+    /// </summary>
+    [HttpPost("{id}/questions/bulk")]
+    //[Authorize(Roles = "Teacher,Admin")]
+    public async Task<IActionResult> BulkCreateQuestions(Guid id, [FromBody] List<CreateQuestionDto> questions, CancellationToken cancellationToken)
+    {
+        var command = new BulkCreateQuestionsCommand 
+        { 
+            PaperId = id, 
+            Questions = questions 
+        };
+        var result = await _mediator.Send(command, cancellationToken);
+        
+        return result.IsSuccess 
+            ? Ok(new { message = "Questions created successfully" }) 
+            : BadRequest(new { error = result.ErrorMessage });
     }
 }

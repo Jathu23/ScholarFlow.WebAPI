@@ -6,6 +6,9 @@ using ScholarFlow.Application.Features.Subjects.Commands.DeleteSubject;
 using ScholarFlow.Application.Features.Subjects.Commands.UpdateSubject;
 using ScholarFlow.Application.Features.Subjects.Queries.GetSubjectById;
 using ScholarFlow.Application.Features.Subjects.Queries.GetSubjects;
+using ScholarFlow.Application.Features.Subjects.Queries.GetAcademicStructure;
+using ScholarFlow.Application.Features.Subjects.Commands.BulkCreateAcademicStructure;
+using ScholarFlow.Application.DTOs;
 
 namespace ScholarFlow.WebAPI.Controllers;
 
@@ -95,5 +98,33 @@ public class SubjectsController : ControllerBase
         return result.IsSuccess 
             ? Ok(new { message = "Subject deleted successfully" }) 
             : NotFound(new { error = result.ErrorMessage });
+    }
+    /// <summary>
+    /// Get full academic structure (Streams -> Subjects -> Topics -> SubTopics)
+    /// </summary>
+    [HttpGet("structure")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetStructure(CancellationToken cancellationToken)
+    {
+        var query = new GetAcademicStructureQuery();
+        var result = await _mediator.Send(query, cancellationToken);
+        
+        return result.IsSuccess 
+            ? Ok(result.Data) 
+            : BadRequest(new { error = result.ErrorMessage });
+    }
+    /// <summary>
+    /// Bulk create/update academic structure
+    /// </summary>
+    [HttpPost("structure")]
+    //[Authorize(Roles = "Admin")]
+    public async Task<IActionResult> BulkCreateStructure([FromBody] List<CreateStreamDto> streams, CancellationToken cancellationToken)
+    {
+        var command = new BulkCreateAcademicStructureCommand { Streams = streams };
+        var result = await _mediator.Send(command, cancellationToken);
+        
+        return result.IsSuccess 
+            ? Ok(new { message = "Academic structure synced successfully" }) 
+            : BadRequest(new { error = result.ErrorMessage });
     }
 }

@@ -9,6 +9,10 @@ public class QuestionDto
     public Guid PaperId { get; set; }
     public Guid SubTopicId { get; set; }
     public string SubTopicName { get; set; } = string.Empty;
+    public Guid TopicId { get; set; }
+    public string TopicName { get; set; } = string.Empty;
+    public Guid SubjectId { get; set; }
+    public string SubjectName { get; set; } = string.Empty;
     public string QuestionText { get; set; } = string.Empty;
     public string? QuestionImageUrl { get; set; }
     public int Difficulty { get; set; }
