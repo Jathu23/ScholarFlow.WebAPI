@@ -14,6 +14,10 @@ public class TopicConfiguration : AuditableEntityConfiguration<Topic>
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(t => t.OrderIndex)
+            .IsRequired()
+            .HasDefaultValue(0);
+
         builder.HasOne(t => t.Subject)
             .WithMany(s => s.Topics)
             .HasForeignKey(t => t.SubjectId)
@@ -22,6 +26,8 @@ public class TopicConfiguration : AuditableEntityConfiguration<Topic>
         builder.HasIndex(t => new { t.SubjectId, t.TopicName })
             .IsUnique()
             .HasFilter("[IsDeleted] = 0");
+
+        builder.HasIndex(t => new { t.SubjectId, t.OrderIndex });
 
         // Configure backing field
         builder.Metadata.FindNavigation(nameof(Topic.SubTopics))!

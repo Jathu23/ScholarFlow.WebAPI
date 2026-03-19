@@ -1,43 +1,37 @@
 using FluentValidation;
 using ScholarFlow.Domain.Enums;
 
-namespace ScholarFlow.Application.Features.Questions.Commands.CreateQuestion;
+namespace ScholarFlow.Application.Features.Questions.Commands.UpdateQuestion;
 
 /// <summary>
-/// Validator for CreateQuestionCommand
+/// Validator for UpdateQuestionCommand.
 /// </summary>
-public class CreateQuestionCommandValidator : AbstractValidator<CreateQuestionCommand>
+public class UpdateQuestionCommandValidator : AbstractValidator<UpdateQuestionCommand>
 {
-    public CreateQuestionCommandValidator()
+    public UpdateQuestionCommandValidator()
     {
-        RuleFor(x => x.PaperId)
-            .NotEmpty().WithMessage("Paper is required");
-
-        RuleFor(x => x.SubTopicId)
-            .NotEmpty().WithMessage("SubTopic is required");
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Question id is required");
 
         RuleFor(x => x.QuestionText)
             .NotEmpty().WithMessage("Question text is required")
             .MinimumLength(5).WithMessage("Question text must be at least 5 characters")
             .MaximumLength(2000).WithMessage("Question text must not exceed 2000 characters");
 
+        RuleFor(x => x.Explanation)
+            .MaximumLength(5000).WithMessage("Explanation must not exceed 5000 characters")
+            .When(x => !string.IsNullOrWhiteSpace(x.Explanation));
+
         RuleFor(x => x.Difficulty)
             .InclusiveBetween(1, 10).WithMessage("Difficulty must be between 1 and 10");
 
-        RuleFor(x => x.Explanation)
-            .MaximumLength(2000).WithMessage("Explanation must not exceed 2000 characters")
-            .When(x => !string.IsNullOrWhiteSpace(x.Explanation));
-
-        // Validate options if provided
         RuleFor(x => x.Options)
-            .Must(options => options == null || options.Count == 0 || options.Count >= 2)
-            .WithMessage("If options are provided, there must be at least 2 options")
-            .When(x => x.Options != null && x.Options.Count > 0);
+            .Must(options => options != null && options.Count >= 2)
+            .WithMessage("At least 2 options are required");
 
         RuleFor(x => x.Options)
-            .Must(options => options == null || options.Count == 0 || options.Count(o => o.IsCorrect) == 1)
-            .WithMessage("Exactly one option must be marked as correct")
-            .When(x => x.Options != null && x.Options.Count > 0);
+            .Must(options => options != null && options.Count(o => o.IsCorrect) == 1)
+            .WithMessage("Exactly one option must be marked as correct");
 
         RuleForEach(x => x.Options)
             .ChildRules(option =>

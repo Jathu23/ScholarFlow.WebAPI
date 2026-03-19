@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScholarFlow.Application.Common.Models;
 using ScholarFlow.Application.DTOs;
 using ScholarFlow.Domain.Entities;
+using ScholarFlow.Domain.Enums;
 using ScholarFlow.Domain.Interfaces;
 
 namespace ScholarFlow.Application.Features.Questions.Commands.CreateQuestion;
@@ -65,6 +66,9 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
                     Id = Guid.NewGuid(),
                     QuestionId = question.Id,
                     OptionText = optionDto.OptionText,
+                    ContentType = optionDto.ContentType,
+                    ImageUrl = optionDto.ImageUrl,
+                    Equation = optionDto.Equation,
                     IsCorrect = optionDto.IsCorrect,
                     OrderIndex = optionDto.OrderIndex
                 };
@@ -75,10 +79,40 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
                 {
                     Id = option.Id,
                     OptionText = option.OptionText,
+                    ContentType = option.ContentType,
+                    ImageUrl = option.ImageUrl,
+                    Equation = option.Equation,
                     IsCorrect = option.IsCorrect,
                     OrderIndex = option.OrderIndex
                 });
             }
+        }
+
+        string? normalizedExplanation = null;
+        if (!string.IsNullOrWhiteSpace(request.Explanation))
+        {
+            normalizedExplanation = request.Explanation.Trim();
+            var explanationTitle = normalizedExplanation.Length <= 200
+                ? normalizedExplanation
+                : normalizedExplanation[..200];
+
+            var explanation = new Explanation
+            {
+                Id = Guid.NewGuid(),
+                QuestionId = question.Id,
+                AuthorId = paper.CreatedByTeacher,
+                Title = explanationTitle
+            };
+
+            _context.Explanations.Add(explanation);
+            _context.ExplanationSections.Add(new ExplanationSection
+            {
+                Id = Guid.NewGuid(),
+                ExplanationId = explanation.Id,
+                Type = ContentType.Text,
+                Content = normalizedExplanation,
+                OrderIndex = 0
+            });
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -92,6 +126,7 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
             SubTopicName = subTopic.SubTopicName,
             QuestionText = question.QuestionText,
             QuestionImageUrl = question.QuestionImageUrl,
+            Explanation = normalizedExplanation,
             Difficulty = question.Difficulty,
             Marks = question.Marks,
             OrderIndex = question.OrderIndex,

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ScholarFlow.Application.Features.Questions.Commands.CreateQuestion;
 using ScholarFlow.Application.Features.Questions.Commands.DeleteQuestion;
+using ScholarFlow.Application.Features.Questions.Commands.UpdateQuestion;
 using ScholarFlow.Application.Features.Questions.Queries.GetQuestionsByPaper;
 
 namespace ScholarFlow.WebAPI.Controllers;
@@ -47,6 +48,22 @@ public class QuestionsController : ControllerBase
 
         return result.IsSuccess 
             ? Ok(result.Data) 
+            : BadRequest(new { error = result.ErrorMessage });
+    }
+
+    /// <summary>
+    /// Update an existing question
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Teacher,Admin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateQuestionCommand command, CancellationToken cancellationToken)
+    {
+        command.Id = id;
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return result.IsSuccess
+            ? Ok(result.Data)
             : BadRequest(new { error = result.ErrorMessage });
     }
 

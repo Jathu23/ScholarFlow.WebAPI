@@ -16,5 +16,8 @@ public class CreateTopicCommandValidator : AbstractValidator<CreateTopicCommand>
 
         RuleFor(x => x.SubjectId)
             .NotEmpty().WithMessage("Subject is required");
+
+        RuleFor(x => x.OrderIndex)
+            .GreaterThanOrEqualTo(0).WithMessage("Order index must be 0 or greater");
     }
 }

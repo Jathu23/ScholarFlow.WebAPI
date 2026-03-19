@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ScholarFlow.Application.Features.Papers.Commands.CreatePaper;
 using ScholarFlow.Application.Features.Papers.Commands.DeletePaper;
+using ScholarFlow.Application.Features.Papers.Commands.UpdatePaper;
 using ScholarFlow.Application.Features.Papers.Queries.GetPaperById;
 using ScholarFlow.Application.Features.Papers.Queries.GetPapers;
 using ScholarFlow.Domain.Enums;
@@ -84,6 +85,29 @@ public class PapersController : ControllerBase
 
         return result.IsSuccess 
             ? Ok(result.Data) 
+            : BadRequest(new { error = result.ErrorMessage });
+    }
+
+    /// <summary>
+    /// Update an existing paper
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Teacher,Admin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePaperCommand command, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { error = "Invalid user token" });
+        }
+
+        command.Id = id;
+        command.UpdatedByTeacher = userId;
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return result.IsSuccess
+            ? Ok(result.Data)
             : BadRequest(new { error = result.ErrorMessage });
     }
 

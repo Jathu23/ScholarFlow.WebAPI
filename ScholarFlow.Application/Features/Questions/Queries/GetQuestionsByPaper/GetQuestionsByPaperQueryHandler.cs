@@ -23,7 +23,9 @@ public class GetQuestionsByPaperQueryHandler : IRequestHandler<GetQuestionsByPap
         var questions = await _context.Questions
             .Include(q => q.SubTopic)
             .Include(q => q.Options)
-            .Where(q => q.PaperId == request.PaperId)
+            .Include(q => q.Explanations)
+                .ThenInclude(e => e.Sections)
+            .Where(q => q.PaperId == request.PaperId && !q.IsDeleted)
             .OrderBy(q => q.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -35,6 +37,13 @@ public class GetQuestionsByPaperQueryHandler : IRequestHandler<GetQuestionsByPap
             SubTopicName = q.SubTopic?.SubTopicName ?? "",
             QuestionText = q.QuestionText,
             QuestionImageUrl = q.QuestionImageUrl,
+            Explanation = q.Explanations
+                .SelectMany(e => e.Sections)
+                .Where(s => s.Type == Domain.Enums.ContentType.Text || s.Type == Domain.Enums.ContentType.Formula || s.Type == Domain.Enums.ContentType.Code)
+                .OrderBy(s => s.OrderIndex)
+                .Select(s => s.Content)
+                .FirstOrDefault()
+                ?? q.Explanations.Select(e => e.Title).FirstOrDefault(),
             Difficulty = q.Difficulty,
             Marks = q.Marks,
             OrderIndex = q.OrderIndex,
@@ -42,6 +51,9 @@ public class GetQuestionsByPaperQueryHandler : IRequestHandler<GetQuestionsByPap
             {
                 Id = o.Id,
                 OptionText = o.OptionText,
+                ContentType = o.ContentType,
+                ImageUrl = o.ImageUrl,
+                Equation = o.Equation,
                 IsCorrect = o.IsCorrect,
                 OrderIndex = o.OrderIndex
             }).OrderBy(o => o.OrderIndex).ToList()

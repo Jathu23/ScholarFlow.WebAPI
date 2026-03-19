@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScholarFlow.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using ScholarFlow.Infrastructure.Persistence;
 namespace ScholarFlow.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260317082514_AddTopicOrderIndex")]
+    partial class AddTopicOrderIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -412,15 +415,6 @@ namespace ScholarFlow.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("ContentType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Equation")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
 
@@ -550,7 +544,8 @@ namespace ScholarFlow.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("QuestionImageUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
@@ -637,28 +632,6 @@ namespace ScholarFlow.Infrastructure.Migrations
                     b.HasIndex("StreamId", "Batch");
 
                     b.ToTable("StudentProfiles");
-                });
-
-            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentSubjectSelection", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("StudentProfileId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubjectId");
-
-                    b.HasIndex("StudentProfileId", "SubjectId")
-                        .IsUnique();
-
-                    b.ToTable("StudentSubjectSelections");
                 });
 
             modelBuilder.Entity("ScholarFlow.Domain.Entities.SubTopic", b =>
@@ -1095,25 +1068,6 @@ namespace ScholarFlow.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentSubjectSelection", b =>
-                {
-                    b.HasOne("ScholarFlow.Domain.Entities.StudentProfile", "StudentProfile")
-                        .WithMany("SelectedSubjects")
-                        .HasForeignKey("StudentProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ScholarFlow.Domain.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("StudentProfile");
-
-                    b.Navigation("Subject");
-                });
-
             modelBuilder.Entity("ScholarFlow.Domain.Entities.SubTopic", b =>
                 {
                     b.HasOne("ScholarFlow.Domain.Entities.Topic", "Topic")
@@ -1241,11 +1195,6 @@ namespace ScholarFlow.Infrastructure.Migrations
                     b.Navigation("Options");
 
                     b.Navigation("UserResponses");
-                });
-
-            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentProfile", b =>
-                {
-                    b.Navigation("SelectedSubjects");
                 });
 
             modelBuilder.Entity("ScholarFlow.Domain.Entities.SubTopic", b =>
