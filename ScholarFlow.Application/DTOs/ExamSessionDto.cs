@@ -20,4 +20,11 @@ public class ExamSessionDto
     public TimeSpan? Duration { get; set; }
     public int TotalQuestions { get; set; }
     public int AnsweredQuestions { get; set; }
+    public List<ExamSessionResponseDto> Responses { get; set; } = new();
+}
+
+public class ExamSessionResponseDto
+{
+    public Guid QuestionId { get; set; }
+    public Guid? SelectedOptionId { get; set; }
 }

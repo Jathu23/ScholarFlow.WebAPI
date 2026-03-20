@@ -6,4 +6,6 @@ namespace ScholarFlow.Application.Common.Models;
 public class AuthResponse
 {
     public string Token { get; set; } = string.Empty;
+    public bool RequiresApproval { get; set; }
+    public string? ApprovalStatus { get; set; }
 }

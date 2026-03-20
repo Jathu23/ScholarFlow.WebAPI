@@ -18,6 +18,10 @@ public class CreateTeacherProfileCommandValidator : AbstractValidator<CreateTeac
             .MaximumLength(200).WithMessage("Qualification must not exceed 200 characters")
             .When(x => !string.IsNullOrEmpty(x.Qualification));
 
+        RuleFor(x => x.PhoneNumber)
+            .MaximumLength(50).WithMessage("Phone number must not exceed 50 characters")
+            .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
+
         RuleFor(x => x.Bio)
             .MaximumLength(1000).WithMessage("Bio must not exceed 1000 characters")
             .When(x => !string.IsNullOrEmpty(x.Bio));

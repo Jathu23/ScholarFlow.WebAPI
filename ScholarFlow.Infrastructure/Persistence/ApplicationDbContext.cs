@@ -34,6 +34,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<ExamSession> ExamSessions { get; set; }
     public DbSet<UserResponse> UserResponses { get; set; }
     public DbSet<StudentSubjectSelection> StudentSubjectSelections { get; set; }
+    public DbSet<StudentTeacherConnection> StudentTeacherConnections { get; set; }
     
     // Expose Users from IdentityDbContext
     public new DbSet<ApplicationUser> Users { get; set; }
