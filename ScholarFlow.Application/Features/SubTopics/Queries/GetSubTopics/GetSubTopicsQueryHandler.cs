@@ -19,6 +19,7 @@ public class GetSubTopicsQueryHandler : IRequestHandler<GetSubTopicsQuery, Resul
     {
         var query = _context.SubTopics
             .Include(st => st.Topic)
+            .Where(st => !st.IsDeleted)
             .AsQueryable();
 
         if (request.TopicId.HasValue)

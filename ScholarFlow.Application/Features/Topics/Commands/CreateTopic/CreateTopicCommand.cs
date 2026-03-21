@@ -10,5 +10,6 @@ namespace ScholarFlow.Application.Features.Topics.Commands.CreateTopic;
 public class CreateTopicCommand : IRequest<Result<TopicDto>>
 {
     public string TopicName { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
     public Guid SubjectId { get; set; }
 }

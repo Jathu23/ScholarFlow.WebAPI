@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ScholarFlow.Application.Features.ExamSessions.Commands.EndExam;
 using ScholarFlow.Application.Features.ExamSessions.Commands.StartExam;
 using ScholarFlow.Application.Features.ExamSessions.Commands.SubmitAnswer;
+using ScholarFlow.Application.Features.ExamSessions.Queries.GetExamSessionReview;
 using ScholarFlow.Application.Features.ExamSessions.Queries.GetMyExamSessions;
 
 namespace ScholarFlow.WebAPI.Controllers;
@@ -89,6 +90,30 @@ public class ExamSessionsController : ControllerBase
 
         return result.IsSuccess 
             ? Ok(result.Data) 
+            : BadRequest(new { error = result.ErrorMessage });
+    }
+
+    /// <summary>
+    /// Get review items for a completed exam session (wrong answers only).
+    /// </summary>
+    [HttpGet("{sessionId}/review")]
+    public async Task<IActionResult> GetReview(Guid sessionId, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { error = "Invalid user token" });
+        }
+
+        var query = new GetExamSessionReviewQuery
+        {
+            SessionId = sessionId,
+            UserId = userId
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+        return result.IsSuccess
+            ? Ok(result.Data)
             : BadRequest(new { error = result.ErrorMessage });
     }
 

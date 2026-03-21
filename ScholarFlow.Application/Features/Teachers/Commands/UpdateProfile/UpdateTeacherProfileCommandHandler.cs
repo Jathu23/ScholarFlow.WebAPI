@@ -31,6 +31,8 @@ public class UpdateTeacherProfileCommandHandler : IRequestHandler<UpdateTeacherP
 
         // Update profile
         profile.FullName = request.FullName;
+        profile.SubjectId = request.SubjectId;
+        profile.PhoneNumber = request.PhoneNumber ?? string.Empty;
         profile.Qualification = request.Qualification;
         profile.Bio = request.Bio;
 
@@ -40,9 +42,16 @@ public class UpdateTeacherProfileCommandHandler : IRequestHandler<UpdateTeacherP
         var dto = new TeacherProfileDto
         {
             Id = profile.Id,
+            UserId = profile.UserId,
             FullName = profile.FullName,
+            SubjectId = profile.SubjectId,
+            PhoneNumber = profile.PhoneNumber,
             Qualification = profile.Qualification,
-            Bio = profile.Bio
+            Bio = profile.Bio,
+            Status = profile.Status.ToString(),
+            TeacherCode = profile.TeacherCode,
+            RejectionReason = profile.RejectionReason,
+            ReviewedAt = profile.ReviewedAt,
         };
 
         return Result<TeacherProfileDto>.Success(dto);

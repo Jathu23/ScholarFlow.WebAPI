@@ -1,4 +1,5 @@
 using FluentValidation;
+using ScholarFlow.Domain.Enums;
 
 namespace ScholarFlow.Application.Features.Questions.Commands.CreateQuestion;
 
@@ -23,9 +24,9 @@ public class CreateQuestionCommandValidator : AbstractValidator<CreateQuestionCo
         RuleFor(x => x.Difficulty)
             .InclusiveBetween(1, 10).WithMessage("Difficulty must be between 1 and 10");
 
-        RuleFor(x => x.QuestionImageUrl)
-            .MaximumLength(500).WithMessage("Image URL must not exceed 500 characters")
-            .When(x => !string.IsNullOrEmpty(x.QuestionImageUrl));
+        RuleFor(x => x.Explanation)
+            .MaximumLength(2000).WithMessage("Explanation must not exceed 2000 characters")
+            .When(x => !string.IsNullOrWhiteSpace(x.Explanation));
 
         // Validate options if provided
         RuleFor(x => x.Options)
@@ -41,9 +42,36 @@ public class CreateQuestionCommandValidator : AbstractValidator<CreateQuestionCo
         RuleForEach(x => x.Options)
             .ChildRules(option =>
             {
+                option.RuleFor(o => o.ContentType)
+                    .IsInEnum().WithMessage("Option content type is invalid");
+
                 option.RuleFor(o => o.OptionText)
-                    .NotEmpty().WithMessage("Option text is required")
                     .MaximumLength(500).WithMessage("Option text must not exceed 500 characters");
+
+                option.RuleFor(o => o.Equation)
+                    .MaximumLength(2000).WithMessage("Option equation must not exceed 2000 characters")
+                    .When(o => !string.IsNullOrWhiteSpace(o.Equation));
+
+                option.RuleFor(o => o)
+                    .Must(o => !string.IsNullOrWhiteSpace(o.OptionText))
+                    .WithMessage("Text option must include option text")
+                    .When(o => o.ContentType == OptionContentType.Text);
+
+                option.RuleFor(o => o)
+                    .Must(o => !string.IsNullOrWhiteSpace(o.ImageUrl))
+                    .WithMessage("Image option must include image URL")
+                    .When(o => o.ContentType == OptionContentType.Image);
+
+                option.RuleFor(o => o)
+                    .Must(o => !string.IsNullOrWhiteSpace(o.Equation))
+                    .WithMessage("Equation option must include equation content")
+                    .When(o => o.ContentType == OptionContentType.Equation);
+
+                option.RuleFor(o => o)
+                    .Must(o => !string.IsNullOrWhiteSpace(o.OptionText) &&
+                               (!string.IsNullOrWhiteSpace(o.ImageUrl) || !string.IsNullOrWhiteSpace(o.Equation)))
+                    .WithMessage("Mixed option must include text and either image or equation")
+                    .When(o => o.ContentType == OptionContentType.Mixed);
             })
             .When(x => x.Options != null && x.Options.Count > 0);
     }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using ScholarFlow.Application;
 using ScholarFlow.Infrastructure;
@@ -14,6 +15,28 @@ builder.Services.AddEndpointsApiExplorer();
 
 // Use native .NET OpenAPI support (compatible with .NET 10)
 builder.Services.AddOpenApi();
+
+// Add CORS policy for admin web/mobile clients
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClientApps", policy =>
+    {
+        if (allowedOrigins is { Length: > 0 })
+        {
+            policy.WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+        else
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    });
+});
 
 // Add Application layer services (MediatR, FluentValidation)
 builder.Services.AddApplication();
@@ -46,11 +69,20 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Seed roles
-using (var scope = app.Services.CreateScope())
+// Seed roles and default users
+try
 {
+    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
-    await DbSeeder.SeedRolesAsync(services);
+    await DbSeeder.SeedRolesAndUsersAsync(services);
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "Seeding failed");
+    if (app.Environment.IsDevelopment())
+    {
+        throw;
+    }
 }
 
 // Configure the HTTP request pipeline
@@ -65,12 +97,37 @@ if (app.Environment.IsDevelopment())
             .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
     });
 }
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowClientApps");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.Map("/error", (HttpContext context) =>
+{
+    var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+    var exception = feature?.Error;
+
+    var problemDetails = new ProblemDetails
+    {
+        Title = "Internal Server Error",
+        Detail = app.Environment.IsDevelopment() ? exception?.ToString() : null,
+        Status = StatusCodes.Status500InternalServerError,
+        Type = "https://tools.ietf.org/html/rfc7807",
+        Extensions =
+        {
+            ["traceId"] = System.Diagnostics.Activity.Current?.Id ?? context.TraceIdentifier
+        }
+    };
+
+    return Results.Problem(problemDetails);
+}).ExcludeFromDescription();
 
 app.Run();

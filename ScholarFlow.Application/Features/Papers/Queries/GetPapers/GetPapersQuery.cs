@@ -10,4 +10,6 @@ public class GetPapersQuery : IRequest<Result<List<PaperDto>>>
     public Guid? SubjectId { get; set; }
     public int? Year { get; set; }
     public PaperType? Type { get; set; }
+    public Guid? CreatedByTeacherId { get; set; }
+    public bool AdminCreatedOnly { get; set; }
 }

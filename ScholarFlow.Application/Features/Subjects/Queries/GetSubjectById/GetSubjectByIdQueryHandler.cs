@@ -24,7 +24,7 @@ public class GetSubjectByIdQueryHandler : IRequestHandler<GetSubjectByIdQuery, R
         var subject = await _context.Subjects
             .Include(s => s.SubjectStreams)
             .ThenInclude(ss => ss.Stream)
-            .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(s => s.Id == request.Id && !s.IsDeleted, cancellationToken);
 
         if (subject == null)
         {

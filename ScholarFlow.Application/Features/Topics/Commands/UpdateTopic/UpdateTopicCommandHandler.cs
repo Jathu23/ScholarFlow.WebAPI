@@ -52,6 +52,7 @@ public class UpdateTopicCommandHandler : IRequestHandler<UpdateTopicCommand, Res
 
         // Update topic
         topic.TopicName = request.TopicName;
+        topic.OrderIndex = request.OrderIndex;
         topic.SubjectId = request.SubjectId;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -61,6 +62,7 @@ public class UpdateTopicCommandHandler : IRequestHandler<UpdateTopicCommand, Res
         {
             Id = topic.Id,
             TopicName = topic.TopicName,
+            OrderIndex = topic.OrderIndex,
             SubjectId = topic.SubjectId,
             SubjectName = subject.Name
         };

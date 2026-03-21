@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ScholarFlow.Application.Common.Interfaces;
 using ScholarFlow.Application.Common.Models;
 using ScholarFlow.Domain.Entities;
+using ScholarFlow.Domain.Enums;
+using ScholarFlow.Domain.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -19,20 +22,31 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IConfiguration _configuration;
+    private readonly IApplicationDbContext _context;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         RoleManager<IdentityRole<Guid>> roleManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IApplicationDbContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _roleManager = roleManager;
         _configuration = configuration;
+        _context = context;
     }
 
-    public async Task<Result<AuthResponse>> RegisterAsync(string email, string password, string role)
+    public async Task<Result<AuthResponse>> RegisterAsync(
+        string email,
+        string password,
+        string role,
+        string? fullName = null,
+        Guid? subjectId = null,
+        string? qualification = null,
+        string? phoneNumber = null,
+        string? bio = null)
     {
         // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
@@ -69,12 +83,52 @@ public class AuthService : IAuthService
             }
             
             await _userManager.AddToRoleAsync(user, normalizedRole);
+
+            if (string.Equals(normalizedRole, "Teacher", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!subjectId.HasValue)
+                {
+                    await _userManager.DeleteAsync(user);
+                    return Result<AuthResponse>.Failure("Subject is required for teacher registration");
+                }
+
+                var subjectExists = await _context.Subjects.AnyAsync(s => s.Id == subjectId.Value);
+                if (!subjectExists)
+                {
+                    await _userManager.DeleteAsync(user);
+                    return Result<AuthResponse>.Failure("Selected subject does not exist");
+                }
+
+                var profile = new TeacherProfile
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    FullName = fullName ?? string.Empty,
+                    SubjectId = subjectId,
+                    Qualification = qualification ?? string.Empty,
+                    PhoneNumber = phoneNumber ?? string.Empty,
+                    Bio = bio ?? string.Empty,
+                    Status = TeacherRegistrationStatus.Pending,
+                    TeacherCode = null,
+                    RejectionReason = null,
+                    ReviewedAt = null,
+                };
+
+                _context.TeacherProfiles.Add(profile);
+                await _context.SaveChangesAsync();
+            }
         }
 
         // Generate token with all user details
         var token = await GenerateJwtToken(user);
 
-        return Result<AuthResponse>.Success(new AuthResponse { Token = token });
+        var requiresApproval = string.Equals(role, "Teacher", StringComparison.OrdinalIgnoreCase);
+        return Result<AuthResponse>.Success(new AuthResponse
+        {
+            Token = token,
+            RequiresApproval = requiresApproval,
+            ApprovalStatus = requiresApproval ? TeacherRegistrationStatus.Pending.ToString() : null,
+        });
     }
 
     public async Task<Result<AuthResponse>> LoginAsync(string email, string password)
@@ -89,6 +143,23 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
         {
             return Result<AuthResponse>.Failure("Invalid email or password");
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (roles.Any(r => string.Equals(r, "Teacher", StringComparison.OrdinalIgnoreCase)))
+        {
+            var profile = await _context.TeacherProfiles
+                .FirstOrDefaultAsync(t => t.UserId == user.Id);
+
+            if (profile == null)
+            {
+                return Result<AuthResponse>.Failure("Teacher profile not found. Please contact admin.");
+            }
+
+            if (profile.Status != TeacherRegistrationStatus.Accepted)
+            {
+                return Result<AuthResponse>.Failure("Your teacher account is pending admin approval.");
+            }
         }
 
         // Generate token with all user details

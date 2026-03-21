@@ -39,6 +39,19 @@ public class CreateStudentProfileCommandHandler : IRequestHandler<CreateStudentP
             return Result<StudentProfileDto>.Failure("Stream not found");
         }
 
+        var distinctSelectedSubjectIds = request.SelectedSubjectIds.Distinct().ToList();
+
+        var validSubjectIds = await _context.SubjectStreams
+            .Where(ss => ss.StreamId == request.StreamId && distinctSelectedSubjectIds.Contains(ss.SubjectId))
+            .Select(ss => ss.SubjectId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        if (validSubjectIds.Count != distinctSelectedSubjectIds.Count)
+        {
+            return Result<StudentProfileDto>.Failure("One or more selected subjects are invalid for this stream");
+        }
+
         // Create student profile
         var profile = new StudentProfile
         {
@@ -52,7 +65,27 @@ public class CreateStudentProfileCommandHandler : IRequestHandler<CreateStudentP
         };
 
         _context.StudentProfiles.Add(profile);
+
+        var selectedRows = distinctSelectedSubjectIds.Select(subjectId => new StudentSubjectSelection
+        {
+            Id = Guid.NewGuid(),
+            StudentProfileId = profile.Id,
+            SubjectId = subjectId
+        }).ToList();
+
+        _context.StudentSubjectSelections.AddRange(selectedRows);
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        var selectedSubjects = await _context.Subjects
+            .Where(s => distinctSelectedSubjectIds.Contains(s.Id))
+            .OrderBy(s => s.Name)
+            .Select(s => new EnrolledSubjectDto
+            {
+                Id = s.Id,
+                Name = s.Name
+            })
+            .ToListAsync(cancellationToken);
 
         // Map to DTO
         var dto = new StudentProfileDto
@@ -63,7 +96,8 @@ public class CreateStudentProfileCommandHandler : IRequestHandler<CreateStudentP
             StreamName = stream.Name,
             Batch = profile.Batch,
             District = profile.District,
-            Medium = profile.Medium
+            Medium = profile.Medium,
+            EnrolledSubjects = selectedSubjects
         };
 
         return Result<StudentProfileDto>.Success(dto);

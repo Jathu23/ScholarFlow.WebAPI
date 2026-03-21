@@ -11,5 +11,6 @@ public class UpdateTopicCommand : IRequest<Result<TopicDto>>
 {
     public Guid Id { get; set; }
     public string TopicName { get; set; } = string.Empty;
+    public int OrderIndex { get; set; }
     public Guid SubjectId { get; set; }
 }

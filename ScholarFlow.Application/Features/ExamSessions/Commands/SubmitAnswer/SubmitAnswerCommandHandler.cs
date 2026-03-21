@@ -41,11 +41,16 @@ public class SubmitAnswerCommandHandler : IRequestHandler<SubmitAnswerCommand, R
             return Result<bool>.Failure("Exam session is not in progress");
         }
 
-        // Verify question belongs to this paper
-        var questionExists = session.Paper.Questions.Any(q => q.Id == request.QuestionId);
-        if (!questionExists)
+        // Verify question is allowed for this session (pre-seeded list for unit/full sessions).
+        var questionExistsInSession = await _context.UserResponses
+            .AnyAsync(
+                ur => ur.SessionId == request.SessionId && ur.QuestionId == request.QuestionId,
+                cancellationToken);
+
+        var questionExistsInPaper = session.Paper.Questions.Any(q => q.Id == request.QuestionId);
+        if (!questionExistsInSession && !questionExistsInPaper)
         {
-            return Result<bool>.Failure("Question does not belong to this paper");
+            return Result<bool>.Failure("Question does not belong to this session");
         }
 
         // Verify option exists and belongs to the question

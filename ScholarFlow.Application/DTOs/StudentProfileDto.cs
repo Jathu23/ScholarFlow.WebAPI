@@ -12,4 +12,11 @@ public class StudentProfileDto
     public string Batch { get; set; } = string.Empty;
     public string District { get; set; } = string.Empty;
     public string Medium { get; set; } = string.Empty;
+    public List<EnrolledSubjectDto> EnrolledSubjects { get; set; } = new();
+}
+
+public class EnrolledSubjectDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

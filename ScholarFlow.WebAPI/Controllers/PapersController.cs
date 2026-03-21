@@ -1,11 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ScholarFlow.Application.Features.Papers.Commands.CreatePaper;
 using ScholarFlow.Application.Features.Papers.Commands.DeletePaper;
+using ScholarFlow.Application.Features.Papers.Commands.UpdatePaper;
 using ScholarFlow.Application.Features.Papers.Queries.GetPaperById;
 using ScholarFlow.Application.Features.Papers.Queries.GetPapers;
 using ScholarFlow.Domain.Enums;
+using ScholarFlow.Domain.Interfaces;
 
 namespace ScholarFlow.WebAPI.Controllers;
 
@@ -17,10 +20,12 @@ namespace ScholarFlow.WebAPI.Controllers;
 public class PapersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IApplicationDbContext _context;
 
-    public PapersController(IMediator mediator)
+    public PapersController(IMediator mediator, IApplicationDbContext context)
     {
         _mediator = mediator;
+        _context = context;
     }
 
     /// <summary>
@@ -32,14 +37,67 @@ public class PapersController : ControllerBase
         [FromQuery] Guid? subjectId, 
         [FromQuery] int? year,
         [FromQuery] PaperType? type,
+        [FromQuery] bool adminCreatedOnly,
+        [FromQuery] string? teacherCode,
         CancellationToken cancellationToken)
     {
         var query = new GetPapersQuery 
         { 
             SubjectId = subjectId,
             Year = year,
-            Type = type
+            Type = type,
+            AdminCreatedOnly = adminCreatedOnly
         };
+
+        if (!string.IsNullOrWhiteSpace(teacherCode))
+        {
+            var userIdClaim = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var studentUserId))
+            {
+                return Unauthorized(new { error = "Login required to access teacher guided papers." });
+            }
+
+            var isStudent = User.Claims.Any(c =>
+                (c.Type == "role" || c.Type.EndsWith("/role"))
+                && string.Equals(c.Value, "Student", StringComparison.OrdinalIgnoreCase));
+
+            if (!isStudent)
+            {
+                return Forbid();
+            }
+
+            var normalizedCode = teacherCode.Trim().ToUpperInvariant();
+            var teacherProfile = await _context.TeacherProfiles
+                .FirstOrDefaultAsync(
+                    t => t.TeacherCode != null
+                         && t.TeacherCode.ToUpper() == normalizedCode
+                         && t.Status == TeacherRegistrationStatus.Accepted,
+                    cancellationToken);
+
+            if (teacherProfile == null)
+            {
+                return BadRequest(new { error = "Teacher ID is invalid or not approved yet." });
+            }
+
+            if (subjectId.HasValue && teacherProfile.SubjectId != subjectId.Value)
+            {
+                return BadRequest(new { error = "This teacher ID is not linked to the selected subject." });
+            }
+
+            var hasApprovedAccess = await _context.StudentTeacherConnections.AnyAsync(
+                x => x.StudentUserId == studentUserId
+                     && x.TeacherUserId == teacherProfile.UserId
+                     && x.Status == StudentTeacherConnectionStatus.Approved
+                     && (!subjectId.HasValue || x.SubjectId == subjectId.Value),
+                cancellationToken);
+
+            if (!hasApprovedAccess)
+            {
+                return StatusCode(403, new { error = "Teacher has not approved your access request for this subject." });
+            }
+
+            query.CreatedByTeacherId = teacherProfile.UserId;
+        }
         
         var result = await _mediator.Send(query, cancellationToken);
 
@@ -84,6 +142,29 @@ public class PapersController : ControllerBase
 
         return result.IsSuccess 
             ? Ok(result.Data) 
+            : BadRequest(new { error = result.ErrorMessage });
+    }
+
+    /// <summary>
+    /// Update an existing paper
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Teacher,Admin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePaperCommand command, CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { error = "Invalid user token" });
+        }
+
+        command.Id = id;
+        command.UpdatedByTeacher = userId;
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return result.IsSuccess
+            ? Ok(result.Data)
             : BadRequest(new { error = result.ErrorMessage });
     }
 
