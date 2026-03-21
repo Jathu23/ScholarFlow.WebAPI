@@ -48,7 +48,9 @@ public class EndExamCommandHandler : IRequestHandler<EndExamCommand, Result<Exam
         }
 
         // Calculate score (auto-grade MCQ questions)
-        int totalQuestions = examSession.Paper.Questions.Count;
+        int totalQuestions = examSession.UserResponses.Count > 0
+            ? examSession.UserResponses.Count
+            : examSession.Paper.Questions.Count;
         int correctAnswers = 0;
 
         foreach (var response in examSession.UserResponses)
@@ -85,7 +87,7 @@ public class EndExamCommandHandler : IRequestHandler<EndExamCommand, Result<Exam
             StatusName = examSession.Status.ToString(),
             Duration = examSession.Duration,
             TotalQuestions = totalQuestions,
-            AnsweredQuestions = examSession.UserResponses.Count
+            AnsweredQuestions = examSession.UserResponses.Count(ur => ur.SelectedOptionId.HasValue)
         };
 
         return Result<ExamSessionDto>.Success(dto);

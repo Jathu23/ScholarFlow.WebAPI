@@ -35,6 +35,7 @@ public class GetTopicByIdQueryHandler : IRequestHandler<GetTopicByIdQuery, Resul
         {
             Id = topic.Id,
             TopicName = topic.TopicName,
+            OrderIndex = topic.OrderIndex,
             SubjectId = topic.SubjectId,
             SubjectName = topic.Subject?.Name ?? ""
         };

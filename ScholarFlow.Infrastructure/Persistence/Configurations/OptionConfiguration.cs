@@ -14,6 +14,16 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
             .IsRequired()
             .HasColumnType("NVARCHAR(MAX)");
 
+        builder.Property(o => o.ContentType)
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(o => o.ImageUrl)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(o => o.Equation)
+            .HasColumnType("nvarchar(max)");
+
         builder.Property(o => o.IsCorrect)
             .IsRequired();
 

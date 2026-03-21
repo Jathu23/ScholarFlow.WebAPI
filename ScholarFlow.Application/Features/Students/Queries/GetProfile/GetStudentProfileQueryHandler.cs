@@ -23,6 +23,8 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         // Get profile with stream
         var profile = await _context.StudentProfiles
             .Include(s => s.Stream)
+            .Include(s => s.SelectedSubjects)
+                .ThenInclude(ss => ss.Subject)
             .FirstOrDefaultAsync(s => s.UserId == request.UserId, cancellationToken);
 
         if (profile == null)
@@ -39,7 +41,15 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             StreamName = profile.Stream?.Name ?? "",
             Batch = profile.Batch,
             District = profile.District,
-            Medium = profile.Medium
+            Medium = profile.Medium,
+            EnrolledSubjects = profile.SelectedSubjects
+                .Select(ss => new EnrolledSubjectDto
+                {
+                    Id = ss.SubjectId,
+                    Name = ss.Subject?.Name ?? string.Empty
+                })
+                .OrderBy(s => s.Name)
+                .ToList()
         };
 
         return Result<StudentProfileDto>.Success(dto);

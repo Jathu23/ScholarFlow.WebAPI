@@ -39,6 +39,16 @@ public class GetPapersQueryHandler : IRequestHandler<GetPapersQuery, Result<List
             query = query.Where(p => p.Type == request.Type.Value);
         }
 
+        if (request.CreatedByTeacherId.HasValue)
+        {
+            query = query.Where(p => p.CreatedByTeacher == request.CreatedByTeacherId.Value);
+        }
+
+        if (request.AdminCreatedOnly)
+        {
+            query = query.Where(p => !_context.TeacherProfiles.Any(t => t.UserId == p.CreatedByTeacher));
+        }
+
         var dtos = await query
             .OrderByDescending(p => p.Year)
             .ThenBy(p => p.Subject.Name)

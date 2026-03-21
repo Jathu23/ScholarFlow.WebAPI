@@ -15,6 +15,7 @@ public class QuestionDto
     public string SubjectName { get; set; } = string.Empty;
     public string QuestionText { get; set; } = string.Empty;
     public string? QuestionImageUrl { get; set; }
+    public string? Explanation { get; set; }
     public int Difficulty { get; set; }
     public decimal Marks { get; set; }
     public int OrderIndex { get; set; }

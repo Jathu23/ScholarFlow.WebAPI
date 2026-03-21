@@ -15,7 +15,7 @@ public class QuestionConfiguration : AuditableEntityConfiguration<Question>
             .HasColumnType("NVARCHAR(MAX)");
 
         builder.Property(q => q.QuestionImageUrl)
-            .HasMaxLength(500);
+            .HasColumnType("nvarchar(max)");
 
         builder.Property(q => q.Difficulty)
             .IsRequired();

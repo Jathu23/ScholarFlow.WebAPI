@@ -68,4 +68,9 @@ public class StudentProfile : BaseEntity
     /// Academic stream
     /// </summary>
     public AcademicStream Stream { get; set; } = null!;
+
+    /// <summary>
+    /// Subjects selected by the student in the chosen stream
+    /// </summary>
+    public ICollection<StudentSubjectSelection> SelectedSubjects { get; set; } = new List<StudentSubjectSelection>();
 }

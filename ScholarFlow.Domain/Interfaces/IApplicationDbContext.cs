@@ -22,6 +22,8 @@ public interface IApplicationDbContext
     DbSet<ExamSession> ExamSessions { get; }
     DbSet<UserResponse> UserResponses { get; }
     DbSet<StudentProfile> StudentProfiles { get; }
+    DbSet<StudentSubjectSelection> StudentSubjectSelections { get; }
+    DbSet<StudentTeacherConnection> StudentTeacherConnections { get; }
     DbSet<TeacherProfile> TeacherProfiles { get; }
     DbSet<ApplicationUser> Users { get; }
 

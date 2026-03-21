@@ -23,6 +23,7 @@ public class GetTopicsQueryHandler : IRequestHandler<GetTopicsQuery, Result<List
         // Query topics with subject
         var query = _context.Topics
             .Include(t => t.Subject)
+            .Where(t => !t.IsDeleted)
             .AsQueryable();
 
         // Filter by subject if provided
@@ -32,7 +33,8 @@ public class GetTopicsQueryHandler : IRequestHandler<GetTopicsQuery, Result<List
         }
 
         var topics = await query
-            .OrderBy(t => t.TopicName)
+            .OrderBy(t => t.OrderIndex)
+            .ThenBy(t => t.TopicName)
             .ToListAsync(cancellationToken);
 
         // Map to DTOs
@@ -40,6 +42,7 @@ public class GetTopicsQueryHandler : IRequestHandler<GetTopicsQuery, Result<List
         {
             Id = t.Id,
             TopicName = t.TopicName,
+            OrderIndex = t.OrderIndex,
             SubjectId = t.SubjectId,
             SubjectName = t.Subject?.Name ?? ""
         }).ToList();

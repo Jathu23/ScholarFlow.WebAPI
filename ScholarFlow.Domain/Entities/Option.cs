@@ -1,4 +1,5 @@
 using ScholarFlow.Domain.Entities.Base;
+using ScholarFlow.Domain.Enums;
 
 namespace ScholarFlow.Domain.Entities;
 
@@ -8,6 +9,8 @@ namespace ScholarFlow.Domain.Entities;
 public class Option : BaseEntity
 {
     private string _optionText = string.Empty;
+    private string? _imageUrl;
+    private string? _equation;
 
     /// <summary>
     /// Foreign key to Question
@@ -21,6 +24,29 @@ public class Option : BaseEntity
     { 
         get => _optionText;
         set => _optionText = value?.Trim() ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Option content style (text, image, equation, or mixed)
+    /// </summary>
+    public OptionContentType ContentType { get; set; } = OptionContentType.Text;
+
+    /// <summary>
+    /// Optional image URL for image or mixed options
+    /// </summary>
+    public string? ImageUrl
+    {
+        get => _imageUrl;
+        set => _imageUrl = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    /// <summary>
+    /// Optional equation expression (e.g. LaTeX) for equation or mixed options
+    /// </summary>
+    public string? Equation
+    {
+        get => _equation;
+        set => _equation = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
     /// <summary>

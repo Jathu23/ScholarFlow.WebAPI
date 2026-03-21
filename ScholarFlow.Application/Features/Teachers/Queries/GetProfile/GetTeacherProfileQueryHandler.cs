@@ -22,6 +22,7 @@ public class GetTeacherProfileQueryHandler : IRequestHandler<GetTeacherProfileQu
     {
         // Get profile
         var profile = await _context.TeacherProfiles
+            .Include(t => t.Subject)
             .FirstOrDefaultAsync(t => t.UserId == request.UserId, cancellationToken);
 
         if (profile == null)
@@ -33,9 +34,17 @@ public class GetTeacherProfileQueryHandler : IRequestHandler<GetTeacherProfileQu
         var dto = new TeacherProfileDto
         {
             Id = profile.Id,
+            UserId = profile.UserId,
             FullName = profile.FullName,
+            SubjectId = profile.SubjectId,
+            SubjectName = profile.Subject?.Name,
+            PhoneNumber = profile.PhoneNumber,
             Qualification = profile.Qualification,
-            Bio = profile.Bio
+            Bio = profile.Bio,
+            Status = profile.Status.ToString(),
+            TeacherCode = profile.TeacherCode,
+            RejectionReason = profile.RejectionReason,
+            ReviewedAt = profile.ReviewedAt,
         };
 
         return Result<TeacherProfileDto>.Success(dto);

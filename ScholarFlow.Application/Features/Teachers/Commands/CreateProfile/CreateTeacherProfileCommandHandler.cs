@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ScholarFlow.Application.Common.Models;
 using ScholarFlow.Application.DTOs;
 using ScholarFlow.Domain.Entities;
+using ScholarFlow.Domain.Enums;
 using ScholarFlow.Domain.Interfaces;
 
 namespace ScholarFlow.Application.Features.Teachers.Commands.CreateProfile;
@@ -36,8 +37,11 @@ public class CreateTeacherProfileCommandHandler : IRequestHandler<CreateTeacherP
             Id = Guid.NewGuid(),
             UserId = request.UserId,
             FullName = request.FullName,
+            SubjectId = request.SubjectId,
+            PhoneNumber = request.PhoneNumber ?? string.Empty,
             Qualification = request.Qualification,
-            Bio = request.Bio
+            Bio = request.Bio,
+            Status = TeacherRegistrationStatus.Pending,
         };
 
         _context.TeacherProfiles.Add(profile);
@@ -47,9 +51,16 @@ public class CreateTeacherProfileCommandHandler : IRequestHandler<CreateTeacherP
         var dto = new TeacherProfileDto
         {
             Id = profile.Id,
+            UserId = profile.UserId,
             FullName = profile.FullName,
+            SubjectId = profile.SubjectId,
+            PhoneNumber = profile.PhoneNumber,
             Qualification = profile.Qualification,
-            Bio = profile.Bio
+            Bio = profile.Bio,
+            Status = profile.Status.ToString(),
+            TeacherCode = profile.TeacherCode,
+            RejectionReason = profile.RejectionReason,
+            ReviewedAt = profile.ReviewedAt,
         };
 
         return Result<TeacherProfileDto>.Success(dto);

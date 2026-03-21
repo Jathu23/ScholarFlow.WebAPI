@@ -15,4 +15,5 @@ public class CreateStudentProfileCommand : IRequest<Result<StudentProfileDto>>
     public string Batch { get; set; } = string.Empty;
     public string District { get; set; } = string.Empty;
     public string Medium { get; set; } = string.Empty;
+    public List<Guid> SelectedSubjectIds { get; set; } = new();
 }

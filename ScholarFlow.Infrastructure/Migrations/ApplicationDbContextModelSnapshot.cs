@@ -412,6 +412,15 @@ namespace ScholarFlow.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("ContentType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Equation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("bit");
 
@@ -541,8 +550,7 @@ namespace ScholarFlow.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("QuestionImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
@@ -629,6 +637,68 @@ namespace ScholarFlow.Infrastructure.Migrations
                     b.HasIndex("StreamId", "Batch");
 
                     b.ToTable("StudentProfiles");
+                });
+
+            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentSubjectSelection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("StudentProfileId", "SubjectId")
+                        .IsUnique();
+
+                    b.ToTable("StudentSubjectSelections");
+                });
+
+            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentTeacherConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<Guid>("StudentUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TeacherUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("StudentUserId", "Status");
+
+                    b.HasIndex("TeacherUserId", "Status");
+
+                    b.HasIndex("StudentUserId", "TeacherUserId", "SubjectId")
+                        .IsUnique();
+
+                    b.ToTable("StudentTeacherConnections");
                 });
 
             modelBuilder.Entity("ScholarFlow.Domain.Entities.SubTopic", b =>
@@ -773,15 +843,49 @@ namespace ScholarFlow.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Qualification")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<Guid?>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TeacherCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("TeacherCode")
+                        .IsUnique()
+                        .HasFilter("[TeacherCode] IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -812,6 +916,11 @@ namespace ScholarFlow.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("OrderIndex")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -838,6 +947,8 @@ namespace ScholarFlow.Infrastructure.Migrations
 
                     b.HasIndex("IsDeleted")
                         .HasFilter("[IsDeleted] = 0");
+
+                    b.HasIndex("SubjectId", "OrderIndex");
 
                     b.HasIndex("SubjectId", "TopicName")
                         .IsUnique()
@@ -1058,6 +1169,52 @@ namespace ScholarFlow.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentSubjectSelection", b =>
+                {
+                    b.HasOne("ScholarFlow.Domain.Entities.StudentProfile", "StudentProfile")
+                        .WithMany("SelectedSubjects")
+                        .HasForeignKey("StudentProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ScholarFlow.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("StudentProfile");
+
+                    b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentTeacherConnection", b =>
+                {
+                    b.HasOne("ScholarFlow.Domain.Entities.ApplicationUser", "StudentUser")
+                        .WithMany()
+                        .HasForeignKey("StudentUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScholarFlow.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScholarFlow.Domain.Entities.ApplicationUser", "TeacherUser")
+                        .WithMany()
+                        .HasForeignKey("TeacherUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("StudentUser");
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("TeacherUser");
+                });
+
             modelBuilder.Entity("ScholarFlow.Domain.Entities.SubTopic", b =>
                 {
                     b.HasOne("ScholarFlow.Domain.Entities.Topic", "Topic")
@@ -1090,11 +1247,18 @@ namespace ScholarFlow.Infrastructure.Migrations
 
             modelBuilder.Entity("ScholarFlow.Domain.Entities.TeacherProfile", b =>
                 {
+                    b.HasOne("ScholarFlow.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ScholarFlow.Domain.Entities.ApplicationUser", "User")
                         .WithOne("TeacherProfile")
                         .HasForeignKey("ScholarFlow.Domain.Entities.TeacherProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Subject");
 
                     b.Navigation("User");
                 });
@@ -1185,6 +1349,11 @@ namespace ScholarFlow.Infrastructure.Migrations
                     b.Navigation("Options");
 
                     b.Navigation("UserResponses");
+                });
+
+            modelBuilder.Entity("ScholarFlow.Domain.Entities.StudentProfile", b =>
+                {
+                    b.Navigation("SelectedSubjects");
                 });
 
             modelBuilder.Entity("ScholarFlow.Domain.Entities.SubTopic", b =>

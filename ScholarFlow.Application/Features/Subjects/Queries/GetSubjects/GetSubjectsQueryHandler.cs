@@ -24,6 +24,7 @@ public class GetSubjectsQueryHandler : IRequestHandler<GetSubjectsQuery, Result<
         var query = _context.Subjects
             .Include(s => s.SubjectStreams)
             .ThenInclude(ss => ss.Stream)
+            .Where(s => !s.IsDeleted)
             .AsQueryable();
 
         // Filter by stream if provided

@@ -20,7 +20,7 @@ public class DeleteQuestionCommandHandler : IRequestHandler<DeleteQuestionComman
     public async Task<Result<bool>> Handle(DeleteQuestionCommand request, CancellationToken cancellationToken)
     {
         var question = await _context.Questions
-            .FirstOrDefaultAsync(q => q.Id == request.Id, cancellationToken);
+            .FirstOrDefaultAsync(q => q.Id == request.Id && !q.IsDeleted, cancellationToken);
 
         if (question == null)
         {

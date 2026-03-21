@@ -22,6 +22,11 @@ public class Topic : AuditableEntity
         get => _topicName;
         set => _topicName = value?.Trim() ?? string.Empty;
     }
+
+    /// <summary>
+    /// Display order index within the subject
+    /// </summary>
+    public int OrderIndex { get; set; }
     
     // Navigation properties
     private readonly List<SubTopic> _subTopics = new();
