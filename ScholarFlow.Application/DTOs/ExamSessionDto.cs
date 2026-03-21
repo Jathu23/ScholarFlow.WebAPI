@@ -28,3 +28,16 @@ public class ExamSessionResponseDto
     public Guid QuestionId { get; set; }
     public Guid? SelectedOptionId { get; set; }
 }
+
+public class ExamSessionReviewItemDto
+{
+    public Guid QuestionId { get; set; }
+    public int OrderIndex { get; set; }
+    public string QuestionText { get; set; } = string.Empty;
+    public string? QuestionImageUrl { get; set; }
+    public Guid? SelectedOptionId { get; set; }
+    public string SelectedOptionText { get; set; } = string.Empty;
+    public Guid CorrectOptionId { get; set; }
+    public string CorrectOptionText { get; set; } = string.Empty;
+    public string? Explanation { get; set; }
+}
