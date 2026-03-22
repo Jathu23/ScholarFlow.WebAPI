@@ -23,19 +23,22 @@ public class AuthService : IAuthService
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly IApplicationDbContext _context;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         RoleManager<IdentityRole<Guid>> roleManager,
         IConfiguration configuration,
-        IApplicationDbContext context)
+        IApplicationDbContext context,
+        IEmailService emailService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<Result<AuthResponse>> RegisterAsync(
@@ -118,6 +121,9 @@ public class AuthService : IAuthService
                 await _context.SaveChangesAsync();
             }
         }
+
+        // Send welcome email (fire-and-forget, errors are logged inside service)
+        await _emailService.SendWelcomeEmailAsync(email, fullName ?? email, role);
 
         // Generate token with all user details
         var token = await GenerateJwtToken(user);

@@ -7,6 +7,7 @@ using ScholarFlow.Domain.Entities;
 using ScholarFlow.Domain.Interfaces;
 using ScholarFlow.Infrastructure.Persistence;
 using ScholarFlow.Infrastructure.Services;
+using ScholarFlow.Infrastructure.Settings;
 
 namespace ScholarFlow.Infrastructure;
 
@@ -40,6 +41,10 @@ public static class DependencyInjection
 
         // Register AuthService
         services.AddScoped<IAuthService, AuthService>();
+
+        // Register EmailService
+        services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }
